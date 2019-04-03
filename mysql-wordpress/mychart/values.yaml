@@ -1,0 +1,35 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+ingress:
+  enabled: false
+storage:
+  classname: local.storage
+mysql:
+  image:
+    repository: mysql
+    tag: 5.7
+  database:
+    dbname: samplechart
+    dbuser: mychartuser
+  persistentvolumeclaim:
+    name: mysql-pvc2
+    size: 10Mi
+  persistentvolume:
+    name: mysql-pvc2
+    size: 20Mi
+  service:
+    name: mysqlchart
+    type: LoadBalancer
+    port: 3306
+    targetport: 3306
+wp:
+  image:
+    repository: wordpress
+    tag: 4.6.1-apache
+  service:
+    name: wpchart
+    port: 80
+  persistentvolumeclaim:
+   name: wordpress-pv
+   size: 10Mi

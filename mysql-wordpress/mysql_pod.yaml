@@ -1,0 +1,95 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-sdc
+  labels:
+    app: wordpress
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Mi
+  accessModes:
+   - ReadWriteOnce
+  hostPath:
+    path: "/Users/bernardogza/storage"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysql-pv
+  labels:
+    app: wordpress
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 10Mi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql
+  labels:
+    app: wordpress
+spec:
+  ports: 
+  - port: 3306 
+    targetPort: 3306
+  selector:
+    app: wordpress
+    tier: mysql
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata: 
+  name: mysql
+  labels:
+    app: wordpress
+spec: 
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: mysql-pv
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        ports: 
+          - containerPort: 3306
+            protocol: TCP
+            name: mysql
+        volumeMounts:
+          - mountPath: "/Users/bernardogza/storage/"
+            name: storage
+        env:
+        - name: "MYSQL_ROOT_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        - name: "MYSQL_DATABASE"
+          value: "sample"
+        - name: "MYSQL_USER"
+          value: "bernardogza"
+        - name: "MYSQL_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password

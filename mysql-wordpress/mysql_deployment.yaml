@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: mysql
+  labels:
+    app: wordpress
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0.1
+        ports:
+          - containerPort: 3306
+            protocol: TCP
+            name: mysql
+         volumesMounts:
+        - mountPath: "/Users/bernardogza/storage/"
+      volumes:
+        - name: storage
+        persistentVolumeClaim:
+          claimName: mysql-pv
+        env:
+        - name: "MYSQL_ROOT_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        - name: "MYSQL_DATABASE"
+          value: "sample"
+        - name: "MYSQL_USER"
+          value: "bernardogza"
+        - name: "MYSQL_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
